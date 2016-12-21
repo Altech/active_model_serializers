@@ -214,7 +214,14 @@ module ActiveModel
       association_object = association_serializer && association_serializer.object
       return unless association_object
 
-      relationship_value = association_serializer.serializable_hash(adapter_options, {}, adapter_instance)
+      if adapter_options[:include] && adapter_options[:include][association.key]
+        fields = (adapter_options[:include][association.key][:only] || []) + [:id]
+        options = {fields: fields}
+      else
+        options = {}
+      end
+
+      relationship_value = association_serializer.serializable_hash(adapter_options, options, adapter_instance)
 
       if association.options[:polymorphic] && relationship_value
         polymorphic_type = association_object.class.name.underscore
